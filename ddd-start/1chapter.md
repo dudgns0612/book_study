@@ -18,26 +18,26 @@ description: 제1장 도메인 모델 시작
     ```java
     @Override
     public boolean equals(Object obj) {
-     if (this == obj) return true;
-     if (obj == null) return false;
-     if (obj.getClass() != 해당클래스.class) return false;
-     해당클래스 compare  = (해당클래스)obj;
-     if (this.식별자 == null) return false;
-     return this.식별자.equals(compare.식별자);
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (obj.getClass() != 해당클래스.class) return false;
+        해당클래스 compare  = (해당클래스)obj;
+        if (this.식별자 == null) return false;
+        return this.식별자.equals(compare.식별자);
     }
     ```
 
-    * hashCode
+  * hashCode
 
-      ```java
-      @Override
-      public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + ((식별자) == null) ? 0 : 식별자.hashCode());
-      return result;
-      }
-      ```
+    ```java
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((식별자) == null) ? 0 : 식별자.hashCode());
+        return result;
+    }
+    ```
 
 ## 엔티티의 식별자 생성
 
@@ -56,13 +56,13 @@ description: 제1장 도메인 모델 시작
 
     ```java
     public class shippingInfo {
-    // 받는사람 정보
-    private String receiverName;
-    private String receiverPhoneNumber;
-
-    // 주소 정보
-    private String shippingAddress1;
-    private String shippingAddress2;
+        // 받는사람 정보
+        private String receiverName;
+        private String receiverPhoneNumber;
+    
+        // 주소 정보
+        private String shippingAddress1;
+        private String shippingAddress2;
     }
     ```
 
@@ -70,19 +70,19 @@ description: 제1장 도메인 모델 시작
 
     ```java
     public class Receiver {
-      private String name;
-      private String phoneNumber;
-
-      // get method
+        private String name;
+        private String phoneNumber;
+    
+        // get method
     }
     ```
 
     ```java
     public class Address {
-      private address1;
-      private address2;
-
-      // get method
+        private address1;
+        private address2;
+    
+        // get method
     }
     ```
 * 완벽한 하나의 개념으로 묶어 가독성을 높힌다. \(의미를 정확하게 파악\)
@@ -90,19 +90,19 @@ description: 제1장 도메인 모델 시작
   * 아래와 같이 단순한 정수연산이 아닌 돈 계산이라는 명확한 의미가 부여됨.
 
     ```java
-     public class Money {
-       private int value;
-
-       ... //생성자, get method
-
-       public Money add(Money money) {
-         return new Money(this.value + money.value);
-       }
-
-       public Money multiply(int mutiplier) {
-         return new Money(value * mutiplier);
-       }
-     }
+    public class Money {
+        private int value;
+    
+        ... //생성자, get method
+    
+        public Money add(Money money) {
+            return new Money(this.value + money.value);
+        }
+    
+        public Money multiply(int mutiplier) {
+            return new Money(value * mutiplier);
+        }
+    }
     ```
 * 변경 기능을 제공 하지 않는 것을 불변\(immutable\)이라 하는데 벨류타입을 불변으로 제공하는 이유는 보다 안전한 코드를 작성하기 위함.
 * 불변객체가 아닐경우엔 아래와 같은 문제가 있기 때문에 벨류타입을 사용하는 엔티티에서 변경 값을 받아 새로운 객체로 만들어 준다.
@@ -120,15 +120,15 @@ description: 제1장 도메인 모델 시작
 
   ```java
   public class OrderLine {
-    private Money price;
-
-    public OrderLine(Product product, Money money, int quantity) {
-      this.product = product;
-      // 새로운 money객체 할당
-      this.price = new Money(price.getValue());
-      this.quantity = quantity;
-      this.amounts = calaulateAmounts();
-    }
+      private Money price;
+    
+      public OrderLine(Product product, Money money, int quantity) {
+          this.product = product;
+          // 새로운 money객체 할당
+          this.price = new Money(price.getValue());
+          this.quantity = quantity;
+          this.amounts = calaulateAmounts();
+      }
   }
   ```
 
@@ -144,51 +144,53 @@ description: 제1장 도메인 모델 시작
   * 주석 3가지 모두 문제가 된다고 생각이 됨.
 
     ```java
-     // Order가 생성성되는 시점에서 order는 완벽하지 않음.
-     Order order = new Order();
+    // Order가 생성성되는 시점에서 order는 완벽하지 않음.
+    Order order = new Order();
 
-     // set으로 모든 정보를 설정해야 함.
-     order.setOrderLine(line);
-     order.setShippingInfo(info);
+    // set으로 모든 정보를 설정해야 함.
+    order.setOrderLine(line);
+    order.setShippingInfo(info);
 
-     // 주문자의 정보가 설정되지 않은 상태에서 주문이 완료 됨.
-     order.setState(OrderState.PREPARING);
+    // 주문자의 정보가 설정되지 않은 상태에서 주문이 완료 됨.
+    order.setState(OrderState.PREPARING);
     ```
 * 생성자를 통해 필요한 데이터를 모두 받을 수 있도록하고 필요한 정보를 토대로 호출 시점에서 데이터들이 올바른지 검사할 수 있다.
 
   ```java
-       public class Order {
-         public Order(Orderer orderer, List<OrderLine> orderLines,
-          ShippingInfo shippingInfo, OrderState state) {
-           setOrderer(orderer);
-           setOrderLines(orderLines);
-           setShippingInfo(shippingInfo);
-           ... // 그 외 설정
-         }
+  public class Order {
+      public Order(Orderer orderer, List<OrderLine> orderLines,
+      ShippingInfo shippingInfo, OrderState state) {
+          setOrderer(orderer);
+          setOrderLines(orderLines);
+          setShippingInfo(shippingInfo);
+          ... // 그 외 설정
+      }
 
-         private setOrderer(Orderer orderer) {
-           if (orderer == null) {
-             throw new IllegalArgumentException("no orderer");
-           }
-           this.orderer = orderer;
-         }
+      private setOrderer(Orderer orderer) {
+          if (orderer == null) {
+              throw new IllegalArgumentException("no orderer");
+          }
+          this.orderer = orderer;
+      }
 
-         private void setOrderLines(List<OrderLine> orderLines) {
-           verifyAtLeastOneOnMoreOrderLines(orderLines);
-           this.orderLines = orderLines;
-           calulateTotalAmounts();
-         }
-
-         private void verifyAtLeastOneOnMoreOrderLines(List<OrderLine> orderLines) {
-           if (orderLines == null || orderLines.isEmpty()) {
-             throw IllegalArgumentException("no orderLines");
-           }
-         }
-
-         private void calulateTotalAmounts() {
-           this.totalAmounts = orderLines.stream().mapToInt(x -> x.getAmounts()).sum();
-         }
-       }
+      private void setOrderLines(List<OrderLine> orderLines) {
+          verifyAtLeastOneOnMoreOrderLines(orderLines);
+          this.orderLines = orderLines;
+          calulateTotalAmounts();
+      }
+    
+      private void verifyAtLeastOneOnMoreOrderLines(List<OrderLine> orderLines) {
+          if (orderLines == null || orderLines.isEmpty()) {
+              throw IllegalArgumentException("no orderLines");
+          }
+      }
+    
+      private void calulateTotalAmounts() {
+          this.totalAmounts = orderLines.stream().mapToInt(
+              x -> x.getAmounts()
+          ).sum();
+      }
+  }
   ```
 
 * 불변에 벨류경우 set 메소드를 구현 할 필요가 없기 때문에 앞서 설명한 것처럼 벨리데이션이 필요 한 경우 private로 외부에서 변경 하지 못하도록 하고 특별한 이유가 없다면 벨류타입은 불변으로 구현한다.
