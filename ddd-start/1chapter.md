@@ -116,21 +116,21 @@ description: 제1장 도메인 모델 시작
      price.setValue(2000);
   ```
 
-  * set메서드가 존재하는 불변 객체가 아닐경우 새로운 Money 객체생성을 통한 이슈방지
+* set메서드가 존재하는 불변 객체가 아닐경우 새로운 Money 객체생성을 통한 이슈방지
 
-    ```java
-    public class OrderLine {
-      private Money price;
+  ```java
+  public class OrderLine {
+    private Money price;
 
-      public OrderLine(Product product, Money money, int quantity) {
-        this.product = product;
-        // 새로운 money객체 할당
-        this.price = new Money(price.getValue());
-        this.quantity = quantity;
-        this.amounts = calaulateAmounts();
-      }
+    public OrderLine(Product product, Money money, int quantity) {
+      this.product = product;
+      // 새로운 money객체 할당
+      this.price = new Money(price.getValue());
+      this.quantity = quantity;
+      this.amounts = calaulateAmounts();
     }
-    ```
+  }
+  ```
 
 * 엔티티의 경우엔 식별자를 통하여 같은지 비교 하지만 벨류의 경우 모든 속성이 같은지 확인해야 한다.
 
@@ -191,5 +191,5 @@ description: 제1장 도메인 모델 시작
        }
   ```
 
-  * 불변에 벨류경우 set 메소드를 구현 할 필요가 없기 때문에 앞서 설명한 것처럼 벨리데이션이 필요 한 경우 private로 외부에서 변경 하지 못하도록 하고 특별한 이유가 없다면 벨류타입은 불변으로 구현한다.
+* 불변에 벨류경우 set 메소드를 구현 할 필요가 없기 때문에 앞서 설명한 것처럼 벨리데이션이 필요 한 경우 private로 외부에서 변경 하지 못하도록 하고 특별한 이유가 없다면 벨류타입은 불변으로 구현한다.
 
