@@ -1,5 +1,5 @@
 ---
-description: 개발서적 스터디 정리 gitbook
+description: 개발서적 스터디 개인정리 gitbook
 ---
 
 # develop books
