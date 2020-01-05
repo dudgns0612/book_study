@@ -3,7 +3,8 @@ description: 개발서적 스터디 개인정리 gitbook
 ---
 
 # develop books
-* https://dudgns0612.gitbook.io/book-study/
+
+* [https://dudgns0612.gitbook.io/book-study/](https://dudgns0612.gitbook.io/book-study/)
 
 ## 2019/12 ~ 2019/3
 
