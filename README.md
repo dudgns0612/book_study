@@ -1,6 +1,9 @@
 ---
-description: 개발서적 스터디 개인정리 gitbook
+description: 개발서적 스터디 개인 부분 정리 gitbook
 ---
+
+### 팀원 전체 정리 gitbook
+https://team-hst.netlify.com/
 
 ## 2019/12 ~ 2019/3
 
