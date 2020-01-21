@@ -2,8 +2,11 @@
 description: 개발서적 스터디 개인 부분 정리 gitbook
 ---
 
+# develop books
+
 ### 팀원 전체 정리 blog
-https://team-hst.netlify.com/
+
+[https://team-hst.netlify.com/](https://team-hst.netlify.com/)
 
 ## 2019/12 ~ 2019/3
 

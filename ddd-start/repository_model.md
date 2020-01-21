@@ -219,9 +219,12 @@ public interface OrderRepository {
   private List<Image> images = new ArrayList<>();
   ```
 
+* 하지만 @OneToMany 매핑에서 컬렉션의 clear\(\) 메서드를 호출하면 삭제과정이 효율적이지 않을 수 있다. SELECT 쿼리로 대상 엔티티를 로딩하고 각 개발로 DELETE를 실행한다.
+* 하이버네이트는 @Embeddable 타입에 대한 컬렉션은 한번에 DELETE를 실행하여 위보다 성능 에서 좋다. 따라서 책  `리스트 4.6` 과 같은 문제를 if-else로 구분해야한다. 성능 부분을 잘 고려해서 ㅏㅇ법을 선택해야한다.
+
+### ID 참조와 조인 테이블을 이용한 단방향 M-N 매핑
 
 
-### ID 참조와 조인 테이블을 이용한 단방향 M-N 매
 
 ## 애그리거트 로딩 전략
 
