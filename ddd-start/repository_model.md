@@ -224,7 +224,27 @@ public interface OrderRepository {
 
 ### ID 참조와 조인 테이블을 이용한 단방향 M-N 매핑
 
+* 애그리거트 간 집합 연관은 성능상의 이유로 피해야한다.
+* 요구사항을 구현하기 위해서 집합 연관을 사용해야 한다면 ID 참조를 이용한 단방향 집합 연관을 적용해 볼 수 있다.
 
+  ```java
+  @Entity
+  @Table(name = "product")
+  public class Product {
+      @EmbeddedId
+      private ProductId id;
+    
+      @ElemnetCollection
+      @CollectionTable(name = "product_category",
+                  joinColumns = @JoinColumn(name = "product_id"))
+      private Set<CategoryId> categoryIds;
+    
+      ...
+  }
+  ```
+
+* 위 코드는 Product에서 Category로 단방향 M:N 연관을 ID 참조 방식으로 구현한 것이다.
+* 애그리거트를 직접 참조했다면 영속성 전파나 로딩 전략을 고민해야 하는데 ID 참조 방식으로 그런 이슈를 없앴다.
 
 ## 애그리거트 로딩 전략
 
