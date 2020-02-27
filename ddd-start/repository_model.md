@@ -57,6 +57,59 @@ public interface OrderRepository {
 
 ## 매핑구현
 
+### 엔티티와 벨류 기본 매핑 구현
+
+애그리거트와 JPA 매핑을 위한 기본 규칙
+
+* 애그거트 루트는 엔티티이므로 @Entity로 매핑 설정한다.
+* 한 테이블에 엔티티와 벨류 데이터가 같이 있을 경우
+  * 벨류는 @Embeddable로 매핑 설정한다.
+  * 벨류 타입 프로퍼티는 @Embedded로 매핑 설정한다.
+
+
+
+* 예를들어 주문 애그리거트의 루트 엔티티는 Order이고 이 애그러거트에 속한 Orderer와 ShippingInfo는 벨류인데, 이 세 객체와 ShippingInfo에 포함된 Address 객체와 Recciver 객체는 한 테이블에 매핑 할 수 있다.
+* 루트 엔티티와 루트 엔티티에 속한 벨류는 한 테이블에 매핑 될때가 많은데 아래 예시를 보자. \(참고 p109\)
+* 주문 애그리거트의 Order는 루트 엔티티 임으로 @Entity 사용한다.
+
+  ```java
+  @Entity
+  @Table(name = "purchase_order")
+  public class Order {
+      ...
+  }
+  ```
+
+* Order에 속하는 Orderer는 벨류 이므로 @Embeddable로 매핑한다.
+
+  ```java
+  @Embeddedable
+  public class Orderer {
+    
+      // @AttributeOverride는 MemberId를 테이블 컬럼 명(orderer_id)로 변경하기 위해
+      @Embeded
+      @AttributeOverrides(
+          @AttributeOverride(name = "id", colum = @Colum(name = "orderer_id"))
+      )
+      private MemberId memberid
+    
+      @Colum(name = "orderer_name")
+      private String name;
+  }
+  ```
+
+* Orderer의 memberId는 Member 애그리거트를 ID로 참조한다. Member의 아이디 타입으로 사용되는 MemberId는 다음과 같이 id 프로퍼티와 매핑되는 테이블 컬럼이름으로 `member_id` 를 지정하고 있다.
+
+  ```java
+  @Embeddable
+  public class MemberId implements Serializable {
+      @Colum(name = "member_id")
+      private String id;
+  }
+  ```
+
+### 
+
 ### 벨류 컬렉션: 별도 테이블 매핑
 
 * Order 엔티티는 한 개 이상의 OrderLine을 가질수 있고 OrderLine은 순서가 있다면 아래와 같이 List 타입을 이용해서 OrderLine 타입의 컬렉션을 프로퍼티로 갖게 된다
@@ -220,7 +273,7 @@ public interface OrderRepository {
   ```
 
 * 하지만 @OneToMany 매핑에서 컬렉션의 clear\(\) 메서드를 호출하면 삭제과정이 효율적이지 않을 수 있다. SELECT 쿼리로 대상 엔티티를 로딩하고 각 개발로 DELETE를 실행한다.
-* 하이버네이트는 @Embeddable 타입에 대한 컬렉션은 한번에 DELETE를 실행하여 위보다 성능 에서 좋다. 따라서 책  `리스트 4.6` 과 같은 문제를 if-else로 구분해야한다. 성능 부분을 잘 고려해서 ㅏㅇ법을 선택해야한다.
+* 하이버네이트는 @Embeddable 타입에 대한 컬렉션은 한번에 DELETE를 실행하여 위보다 성능 에서 좋다. 따라서 책  `리스트 4.6` 과 같은 문제를 if-else로 구분해야한다. 성능 부분을 잘 고려해서 법을 선택해야한다.
 
 ### ID 참조와 조인 테이블을 이용한 단방향 M-N 매핑
 
