@@ -221,7 +221,7 @@ public interface OrderRepository {
   }
   ```
 
-#### JPA 2.1 버전에서 처
+#### JPA 2.1 버전에서 처리
 
 * 2.1버전에서는 DB 컬럼과 벨류 사이의 변환 코드를 모델에 구현하지 않아도 된다. 대신 AttributeConverter를 사용해서 변환을 처리할 수 있다. AttributeConverter는 JPA 2.1에서 추가된 인터페이스로 다음과 같이 벨류 타입과 컬럼 데이터간의 변환 처리를 위한 기능을 정의하고 있다.
 
