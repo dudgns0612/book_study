@@ -59,7 +59,7 @@ public interface OrderRepository {
 
 ### 엔티티와 벨류 기본 매핑 구현
 
-애그리거트와 JPA 매핑을 위한 기본 규칙
+#### 애그리거트와 JPA 매핑을 위한 기본 규칙
 
 * 애그거트 루트는 엔티티이므로 @Entity로 매핑 설정한다.
 * 한 테이블에 엔티티와 벨류 데이터가 같이 있을 경우
@@ -108,7 +108,157 @@ public interface OrderRepository {
   }
   ```
 
-### 
+* Orderer의 memberId 프로퍼티와 매핑되는 컬럼 이름은 'orderer\_id' 이므로 MemberId에 설정된 'member\_id' 와 이름이 다르다. 따라서 @Embeddable 타입에 설정한 컬럼 이름과 실제 컬럼 이름이 다르므로 Orderer의 memberId 프로퍼티를 매핑할 때 @AtrributeOverrides 애노테이션을 이용해서 매핑할 컬럼 이름을 변경한다.
+* **JPA 2부터 @Embeddable은 중첩을 허용한다.** 따라서 Orderer와 같이 ShippingInfo 벨류도 다른 벨류인 Address와 Receiver를 포함한다. Address와 Receiver를 사용하기 위해서 Orderer와 같이 @AttributeOverride 애노테이션을 사용한다.
+* Order 애그리거트 루트 엔티티는 @Embedded를 이용해서 벨류 타입 프로퍼티를 설정한다.
+
+  ```java
+  @Entity
+  public class Order {
+      ...
+      @Embedded
+      private Orderer orderer;
+    
+      @Embedded
+      private ShippingInfo shippingInfo;
+      ...
+  }
+  ```
+
+### 기본생성자
+
+* 엔티티와 벨류의 생성자는 객체를 생성할 때 필요한 것을 전달받는다. Receiver 벨류 타입의 경우 생성 시점에 수취인 이름과 연락처를 생성자 파라미터로 전달받는다.
+
+  ```java
+  public class Receiver {
+      private String name;
+      private String phone;
+    
+      public Receiver(String name, String) {
+          this.name = name;
+          this.phone = phone;
+      }
+      ...
+  }
+  ```
+
+* Receiver가 불변 타입이면 생성 시점에 필요한 값을 모두 전달받으므로 값을 변경하는 set 메서드를 제공하지 않는다. 따라서 이는 기본 생성자가 필요가 없다는 것을 뜻한다. **하지만 JPA @Entity와 @Embeddable로 클래스를 매핑하려면 기본 생성자를 제공 해야한다.** 하이버네이트와 같은 JPA 프로바이더는 DB에서 데이터를 읽어와 매핑 된 객체를 생성할 때 기본 생성자를 사용해서 객체를 생성하기 때문이다. 그렇기에 불변타입의 Receiver도 기본 생성자를 생성해 줘야한다.
+* 기본 생성자는 JPA 프로바이더가 객체를 생성할 때만 사용한다. 따라서 불변타입일 경우 기본 생성자를 다른코드에서 사용하면 값이 없는 온전하지 못한 객체를 만들게 됨으로 protected로 선언한다.
+
+### 필터 접근 방식 사용
+
+* JPA는 필드와 메서드의 두 가지 방식으로 매핑을 처리할 수 있다. 메서드 방식을 사용하라면 아래와 같이 프로퍼티를 위한 get/set 메서드를 구현해야 한다.
+
+  ```java
+  @Entity
+  @Access(AccecssType.PROPERTY)
+  public class Order {
+      @Column(name - "state")
+      @Enumerated(EnumType.STRING)
+      public OrderState getState() {
+          return state;
+      }
+    
+      public void setState(OrderState state) {
+          this.state = state;
+      }
+      ...
+  }
+  ```
+
+* 위와 같이 set 메서드는 내부 데이터를 외부에서 변경할 수 있는 수단이 되기 때문에 캡슐화를 깨는 원인이 될 수 있다.
+* 엔티티가 객체로서 제 역할 하려면 외부에서 set 메서드 대신 의도가 잘 드러나는 기능을 제공해야한다. **상태 변경을 위한 setState 메서드보다 주문 취소를 위한 cancle\(\) 메서드가 도메인을 더 잘 표현하고, setShippingInfo\(\) 메서드 보다 배송지를 변경한다는 의미를 갖는 changeShippingInfo\(\)가 도메인을 더 잘 표현한다.**
+* 엔티티를 객체가 제공할 기능 중심으로 구현하도록 유도하려면 JPA 매핑 처리를 프로퍼티 방식이 아닌 필드 방식으로 선택해서 불필요한 get/set 메서드를 구현하지 말아야한다.
+
+  ```java
+  @Entity
+  @Access(AccessType.FIELD)
+  public class Order {
+      @EmbeddedId
+      private OrderNo number;
+    
+      @Column(name - "state")
+      @Enumerated(EnumType.STRING)
+      private OrderState state;
+    
+      ...// cancle(), changeShippingInfo()
+      ...// 필요한 get 메서드 사
+  }
+  ```
+
+* **JPA 구현체인 하이버네이트는 @Access를 이용해서 명시적으로 접근 방식을 지정하지 않으면 @Id, @EmbeddedId가 어디에 위치했느냐에 따라 접근 방식을 결정한다. 필드에 위치하면 필드 접근방식을 선택하고 get 메서드에 위치하면 메서드 접근방식을 선택한다.**
+
+### AttributeConverter를 이용한 이용한 밸류 매핑 처리
+
+* int, long, String, LocalDate와 같은 타입은 DB 테이블의 한 개 컬럼과 매핑된다. 이와 비슷하게 벨류 타입의 프로퍼티를 한 개 컬럼에 매핑해야 할 때도 있다. 아래와 같이 value, unit을 하나의 컬럼에 매핑해야 할 때이다.
+
+  ```java
+  public class Length {
+      // 두 개의 프로퍼티가 WIDTH라는 컬럼에 '1000m'으로 value+unit으로 저장한다. 
+      private int value;
+      private String unit;  
+  }
+  ```
+
+#### JPA 2.0 버전에서 처
+
+* 아래와 같이 컬럼과 매핑하기 위한 프로퍼티를 따로 추가하고 get/set 메서드에서 실제 벨류 타입과 변환 처리를 해야 했다.
+
+  ```java
+  public class Product {
+      @Column(name = "WIDTH")
+      private String width;
+    
+      // DB 컬럼 값을 실제 프로퍼티 타입으로 변
+      public Length getWidth() {
+          retrun new Width(width);
+      }
+    
+      // 실제 프로퍼티 타입을 DB 컴럼 값으로 변환
+      void setWidth(Length width) {
+          this.width = width.toString();
+      }
+  }
+  ```
+
+#### JPA 2.1 버전에서 처
+
+* 2.1버전에서는 DB 컬럼과 벨류 사이의 변환 코드를 모델에 구현하지 않아도 된다. 대신 AttributeConverter를 사용해서 변환을 처리할 수 있다. AttributeConverter는 JPA 2.1에서 추가된 인터페이스로 다음과 같이 벨류 타입과 컬럼 데이터간의 변환 처리를 위한 기능을 정의하고 있다.
+
+  ```java
+  package javax.persistence;
+
+  public interface AttributeConverter<X,Y> {
+      public Y convertToDatabaseColumn (X attribute);
+      public X convertToEntityAttribute (Y dbData); 
+  }
+  ```
+
+* 타입 파라미터 X는 벨류 타입이고 Y는 DB 타입이다. convertToDatabaseColumn\(\)는 벨류 타입을 DB 타입으로 변환하는 기능을 구현하고 convertToEntityAttribute\(\)는 DB 컬럼 값을 벨류로 변환하는 기능을 구현한다.
+* Money 벨류 타입을 위한 AttributeConverter는 아래와 같이 구현할 수 있다. \(책 117p 참고\)
+
+  ```java
+  @Converter(autoApply = true)
+  public class MoneyConverter implements AttributeConverter<Money, Integer> {
+    
+      @Override
+      public Integer converToDatabaseColumn(Money money) {
+          if (money == null) {
+              return null;
+          } else {
+              return money.getValue();
+          }
+      }
+    
+      @Override
+      public Money convertToEntityAttribute(Integer value) {
+          if (value == null) return null;
+          else return new Money(value);
+      }
+  }
+  ```
+
+* AttributeConverter 인터페이스를 구현한 클래스는 @Converter 애노테이션을 적용해야한다. autoApply 속성값은 true로 적용했는데, 이 경우 모델에 출현하는 모든 Money 타입의 프로퍼티에 대해 Converter를 자동으로 적용하게 한다.
 
 ### 벨류 컬렉션: 별도 테이블 매핑
 
