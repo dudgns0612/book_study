@@ -10,3 +10,7 @@
 * [3. 애그리거트](ddd-start/aggregate.md)
 * [4.리포지터리와 모델구현\(JPA 중심\)](ddd-start/repository_model.md)
 
+## Effective Java 3E
+
+* [소개](effective-java-3e/undefined.md)
+
