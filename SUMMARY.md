@@ -13,4 +13,5 @@
 ## Effective Java 3E
 
 * [소개](effective-java-3e/undefined.md)
+* [2. 객체 생성과 파괴](effective-java-3e/objectcreate_destruction.md)
 
