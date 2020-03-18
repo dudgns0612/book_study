@@ -105,13 +105,45 @@ class.forName\(String name\)은 자바 가상머신이 동작을  시작하기 �
 
 참조 - [https://heavyfive.tistory.com/entry/Class-%ED%81%B4%EB%9E%98%EC%8A%A4%EC%9D%98-%EC%9A%A9%EB%8F%84](https://heavyfive.tistory.com/entry/Class-%ED%81%B4%EB%9E%98%EC%8A%A4%EC%9D%98-%EC%9A%A9%EB%8F%84) 
 
+그렇다면 단점을 무엇일까? 정적 팩터리 메서드의 단점을 알아보자.
 
+**첫 번째, 상속을 하려면 public이나 protected 생성자가 필요하니 정적 팩터리 메서드만 제공하면 하위 클래스를 만들 수 없다.** 앞서 이야기한 컬렉션 프레임워크의 유틸리티 구현 클래스들은 상속할 수 없다. 이 제약은 상속보다 컴포지션을 이용하도록 유도하고 불변 타입으로 만들려면 이 제약을 지켜야 한다는 점에서 오히러 장점으로 받아들일 수도 있다.
 
+**두 번째, 정적 팩터리 메서드는 프로그래머가 찾기 어렵다.** 생성자처럼 API설명에 명확히 드러나지 않으니 사용자는 정적 팩터리 메서드 방식 클래스를 인스턴스화할 방법을 알아내야 한다.
 
+정적 팩토리 메서드에 흔히 사용되는 명명 방식들이다.
 
+1\) from: 매개변수를 하나 받아서 해당 타입의 인스턴스를 반환하는 형 변환 메서드
 
+    예\) Date date = Date.from\(instant\);
 
+2\) of: 여러 매개변수를 받아 적합한 타입의 인스턴스를 반환하는 집게  메서
 
+    예\) Set&lt;Rank&gt; faceCards = EnumSet.of\(JACK,  QUEEN, KING\)
+
+3\) valueOf: form과 of의 더 자세한 버전
+
+    예\) BigInteger prime = BigInteger.valueOf\(Integer.MAX\_VALUE\)
+
+4\) instance & getInstance: 매개변수를 받는다면 매개변수로 명시한 인스턴스를 반환하지만, 같은 인스턴스임을 보장하지는 않는다.
+
+    예\) StackWalker luke = StackWalker.getInstance\(options\)
+
+5\) create & newInstance: instance & getInstance와 같지만, 매번 새로운 인스턴스를 생성해 반환함을 보장한다.
+
+    예\) Object array = Array.newInstance\(classObject, arrayLength\)
+
+6\) getType: getInstance와 같으나, 생성할 클래스가 아닌 다른 클래스에 팩터리 메서드를 정의할 때 쓴다. "Type"은 팩터리 메서드가 반환할 객체의 타입이다.
+
+    예\) FileStore fs = Files.getFileStore\(path\);
+
+7\) newType: newInstance와 같으나, 생성할 클래스가 아닌 다른 클래스에 팫터리 메서드를 정의할 때 쓴다. "Type"은 팩터리 메서드가 반환할 객체의 타입이다. 
+
+   예\) BuffererdReader br = Files.newBufferedReader\(path\);
+
+8\) type: getType과 newType의 간결한 버전
+
+   예\) LIst&lt;Complaint&gt; comList = Collenctions.list\(legacyCom\); 
 
 \*\*\*\*
 
