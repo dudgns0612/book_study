@@ -192,6 +192,15 @@ Single.getInstance는 항상 같은 객체의 참조를 반환하므로 제2의 
 
 싱글턴 클래스를 직렬화하려면 단순히 Serializable을 구현한다고 선언하는 것만으로는 부족하다. 모든 인스턴스 필드를 일시적\(transient\)이라고 선언하고 readResolve 메서드를 제공해야한다.
 
+readResolve는 새로운 역 직렬화 된 인스턴스를 반환하기 때문에 아래와 같이 기존에 인스턴스를 반환해 줘야한다.
+
+```java
+private Object readResovle() {
+    // 기존 인스턴스를 반환하고 가짜인 새로운 인스턴스는 가비지 컬렉션에 맡긴다.
+    return INSTANCE;
+}
+```
+
 **세 번째, 열거 타입 방식의 싱글턴 - 바람직한 방법**
 
 ```java
