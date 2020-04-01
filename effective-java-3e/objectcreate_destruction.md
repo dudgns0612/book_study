@@ -145,7 +145,7 @@ class.forName\(String name\)은 자바 가상머신이 동작을  시작하기 �
 
    예\) LIst&lt;Complaint&gt; comList = Collenctions.list\(legacyCom\); 
 
-#### 결
+#### 결론
 
 간단정리 정적 팩터리 메서드와 public 생성자는 각자의 쓰임새가 있다. 장단점을 이해하고 사용하는것이 좋다. 그렇다고 하더라도 정적 팩터리를 사용하는 게 유리한 경우가 더 많으므로 무작정 public 생성자를 제공하지는 말자.
 
