@@ -109,6 +109,139 @@ equals 메서드가 쓸모 있으려면 모든 원소가 같은 동치류에 속
 * 관례상, 이 메서드가 반환하는 객체는 super.clone을 호출해 얻어야 한다.
 * 관례상, 반환된 객체와 원본 객체는 독립적이어야 한다. 이를 만족하려면 super.clone으로 얻은 객체의 필드 중 하나 이상을 반환 전에 수정해야 할 수도 있다.
 
+#### 가변 상태를 참조하지 않는 클래스
+
+* 제대로 동작하는 clone 메서드를 가진 상위 클래스를 상속해 Cloneable을 구현하고 싶다고 했을 때, 먼저 super.clone을 호출한다.
+* 모든타입이 기본 타입이거나 불변 객체를 참조한다면 이 객체는 완벽히 우리가 원하던 상태일 것이다.
+* 불변 클래스는 굳이 clone 메서드를 제공하지 않는 게 좋다. 이 점을 고려하여 불변 클래스의 clone 메서드는 아래와 같이 구현할 수 있다.
+
+  ```java
+  // 아이템10의 PhoneNumber 클래
+  @Override
+  public PhoneNumber clone() {
+      try {
+          return (PhoneNumber)super.clone();
+      } catch (CloneNotSupportExceoption e) {
+          throw new AssertionError(); // 일어날 수 없는 일
+      }
+  }
+  ```
+
+* 위 메서드가 동작하게 하려면 PhoneNumber 클래스에 Cloneable을 구현해야한다. Object에 clone 메서드는 Object를 반환하지만 PhoneNumber의 clone 메서드는 PhoneNumber을 반환하게 했다.
+* 이 방식으로 클라이언트에서 형변환하지 않아도 되게끔 하자.
+
+#### 가변 상태를 참조하는 클래스 
+
+* 위 앞서 보았던 구현이 클래스가 가변 객체를 참조 하는 순간 재앙으로 변한다. 아이템7에서 소개한 Stack 클래스를 예로 들어보자.
+
+  ```java
+  public class Stack {
+      private Object[] elements;
+      private int size = 0;
+      private static final int DEFAULT_INITIAL_CAPACITY = 16;
+
+      public Stack() {
+          elements = new Object[DEFAULT_INITIAL_CAPACITY];
+      }
+
+      public void push(Object e) {
+          ensureCapacity();
+          elements[size++] = e;
+      }
+
+      public Object pop() {
+          if (size == 0)
+              throw new EmptyStackException();
+          return elements[--size];
+      }
+
+      private void ensureCapacity() {
+          if (elements.length == size)
+              elements = Arrays.copyOf(elements, 2 * size + 1);
+      }
+  }
+  ```
+
+* clone이 단순히 super.clone의 결과를 그대로 반환한다면 반환된 Stack 인스턴스의 size 필드는 올바른 값을 갖겠지만, elements 필드는 원본 Stack 인스턴스와 똑같은 배열을 참조할 것이다.
+* 따라서 복제본이나 원본을 수정하게 되면 다른하나도 수정되어 불변식을 해친다는 이야기다.
+* **clone 메서드는 사실상 생성자와 같은 효과를 낸다. 즉, clone은 원본 객체에 아무런 해를 끼치지 않는 동시에 복제된 객체의 불변식을 보장해야한다.**
+* 따라서 clone 메서드를 제대로 동작하려면 스택 내부 정보를 복사해야한다. 가장 쉬운 방법은 elements 배열의 clone 을 재귀적으로 호출해 주는 것이다.
+
+  ```java
+  @Override public Stack clone() {
+      try {
+          Stack result = (Stack) super.clone();
+          result.elements = elements.clone();
+          return result;
+      } catch (CloneNotSupportedException e) {
+          throw new AssertionError();
+      }
+  }
+  ```
+
+* clone을 재귀적으로 호출하는 것만으로 충분하지 않을 때도 있다. 이번에는 해시테이블용 clone 메서드를 생각해 보자. 해시테이블 내부는 버킷들의 배열이고, 각 버킷은 키-값 쌍을 담는 연결 리스트의 첫 번째 엔트리를 참조한다.
+* 성능을 위해 java.util.LinkedList 대신 직접 구현한 경량 연결 리스트를 사용하겠다.
+
+  ```java
+  public class HashTable implements Cloneable {
+      private Entry[] buckets = ...;
+    
+      private static class Entry {
+          final Object key;
+          Object value;
+          Entry next;
+        
+          Entry(Object key, Object value, Entry next) {
+              this.key = key;
+              this.value = value;
+              this.next = next;
+          }
+      }
+      ... // 나머지 코드는 생
+  }
+  ```
+
+* Stack에서처럼 단순히 버킷 배열의 clone을 호출하게 되면 이 배열은 원본과 같은 연결리스트를 참조하여 원본과 복제본 모두 예기치 않게 동작할 가능성이 생긴다.
+* 따라서 Hashtable에 Entry를 deepCopy를 할 수 있도록 메서드를 지원하고 연결리스트들을 재귀적으로 호출해서 연결리스트 전체를 복사해야한다.
+
+#### clone 사용에 대한 주의점
+
+* 생성자에서는 재정의될 수 있는 메서드를 호출하지 않아야 하는데 clone 메서드도 마친가지다.
+  * 만약 clone이 하위 클래스에서 재정의한 메서드를 호출하면, 하위 클래스는 복제 과정에서 자신의 상태를 교정할 기회를 잃게 되어 온본과 복제본의 상태가 달라질 가능성이 크다.
+* 상속해서 쓰기 위한 클래스 설계 방식 두 가지\(아이템19\) 중 어느 쪽에서든, 상속용 클래스는 Cloneable을 구현해서는 안된다.
+  * 첫 번째, 제대로 작동하는 clone 메서드를 구현해 protected로 두고 CloneNotSupportedException을 던질 수도 이다고 선언하는 것이다.
+  * 두번 째, clone을 동작하지 않게 구현해 놓고 하위 클래스에서 재정의하지 못하게 할 수도 있다.
+
+    ```java
+    @Override
+    protected final Object clone() throws CloneNotSupportedException {
+        throw new CloneNotSupportedException();
+    }
+    ```
+
+#### 복사 생성자와 복사 팩터리 사용
+
+* 위 처럼 모든 작업이  필요한가? 복잡한 경우는 드물다. 꼭 Cloneable을 구현해야 한다면 위처럼 해야하지만 그렇지 않다면 **복사 생성자와 복사 팩터리라는 더 나은 객체 복사 방식을 제공할 수 있다.**
+
+  ```java
+  // 복사 생성자
+  public Yum(Yum yum) {
+      ...
+  }
+
+  // 복사 팩터리
+  public static Yum newInstance(Yum) {
+      ...
+  }
+  ```
+
+* 복사 생성자와 복사 팩터리는 Cloneable/ clone 방식보다 나은면이 많다. 위에 설명했던 여러 문제들에 대해 제약 받지 않는다.
+
+#### 결론
+
+* Cloneable/clone은 새로운 인터페이스, 클래스 생성 문제, 형 변,성능 최적화 관점에서 문제가 있다. 따라서 이런 문제에 대해서 문제가 없을 시에만 드물게 허용해야한다.
+* 따라서 **복제기능은 복사생성자와 복사 팩터리를 이용하는게 가장 나은 방법이다.** 
+
 ### 아이템 14 - Comparable을 구현할지 고려하라.
 
 ### 아이템 15 - 클래스와 멤버의 접근 권한을 최소화하라.
